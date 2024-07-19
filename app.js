@@ -5,6 +5,11 @@ const app = express();
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log('Hello from the middleware');
+  next();
+});
+
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 // );
@@ -17,10 +22,11 @@ app.use(express.json());
 //     .send({ message: 'Hello from the server side1', app: 'Nautors' });
 // });
 
-/* ------------ GET REQUEST --------------  */
+/* ------------ CRUD FUNCTIONS --------------  */
+
 const tours = JSON.parse(fs.readFileSync(`./dev-data/data/tours-simple.json`));
 
-app.get('/api/v1/tours', (req, res) => {
+const getAllTours = (req, res) => {
   res.status(200).send({
     status: 'success',
     results: tours.length,
@@ -28,11 +34,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
-/* ------------ GET REQUEST(id) --------------  */
-
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   const id = req.params.id * 1;
   const tour = tours.find((el) => el.id == id);
 
@@ -43,10 +47,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+};
 
-/* ------------ POST REQUEST --------------  */
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   const newId = tours.length;
   const newTour = Object.assign({ id: newId }, req.body);
 
@@ -64,11 +67,9 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-});
+};
 
-/* ------------ UPDATE REQUEST (PATCH) --------------  */
-
-app.patch('/api/v1/tours/:id', (req, res) => {
+const upDateTour = (req, res) => {
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({
       status: 'fail',
@@ -82,15 +83,51 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       tours: '<Updated tour here....>',
     },
   });
-});
+};
+
+const deleteTour = (req, res) => {
+  if (req.params.id * 1 > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+};
+
+/* ------------ GET REQUEST --------------  */
+
+// app.get('/api/v1/tours', getAllTours);
+
+/* ------------ GET REQUEST(id) --------------  */
+
+// app.get('/api/v1/tours/:id', getTour);
+
+/* ------------ POST REQUEST --------------  */
+
+// app.post('/api/v1/tours', createTour);
+
+/* ------------ UPDATE REQUEST (PATCH) --------------  */
+
+// app.patch('/api/v1/tours/:id', upDateTour);
 
 /* ------------ DELETE REQUEST --------------  */
 
-app.delete('/api/v1/tours/:id', (req, res) => {
-  res.status(200).json({
-    success: 'BAŞARILIIIIII',
-  });
-});
+// app.delete('/api/v1/tours/:id', deleteTour);
+
+/* ------------ ROUTING PORT --------------  */
+
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(upDateTour)
+  .delete(deleteTour);
 /* ------------ LISTENING PORT --------------  */
 
 const port = 3006;
